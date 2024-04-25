@@ -1,22 +1,32 @@
 def main():
-    # store weather api key
-    key = "946ee54bb057c38d12d8ed13c2e4ca74"
-
     import requests
     import datetime
+    import secrets1
+    
+    # get the api key
+    key = secrets1.secrets()
 
     # get user zip
-    zip_code = int(input("Enter a ZipCode: "))
-    # make sure a 5 digit code is entered
-    if zip_code < 0 or zip_code > 99999:
-        print("Please enter a five digit zipcode")
+    try:
+        zip_code = int(input("Enter a ZipCode: "))
+    except ValueError:
+        print("Please enter a 5 digit zipcode")
         exit()
+    
+    # check for valid length of input
+    is_five_digits(str(zip_code))
 
-    # make the request
-    data = requests.get(
-        f"https://api.openweathermap.org/data/2.5/forecast?q={zip_code},US&units=imperial&APPID={key}")
-    # store the results
-    forcast = data.json()
+    try:
+        # make the request
+        data = requests.get(
+            f"https://api.openweathermap.org/data/2.5/forecast?q={zip_code},US&units=imperial&APPID={key}")
+        # store the returned data
+        forcast = data.json()
+        # check if the retured data is for a valid city
+        get_cod(forcast)
+    except:
+        print("Request failed")
+        exit()
 
     # get present forcast
     day = 0
@@ -46,7 +56,20 @@ def main():
         print("---------")
         # gets forcast from two days out
         get_future_forcast(forcast, i)
+        
+        
+# make sure entered num is five digits
+def is_five_digits(zip_code):
+    if len(zip_code) != 5:
+        print("Please enter a 5 digit zipcode")
+        exit()
 
+# make sure the entered zip code returns data
+def get_cod(forcast):
+    cod = forcast['cod']
+    if cod == '404':
+        print("City not found! Please enter a valid zipcode!")
+        exit()
 
 def get_current_weather(forcast, day):
     city = forcast['city']['name']
