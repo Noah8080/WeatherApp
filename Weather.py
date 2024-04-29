@@ -1,5 +1,8 @@
 
 
+import json
+
+
 def main():
     import requests
     import datetime
@@ -40,12 +43,16 @@ def main():
             f"https://api.openweathermap.org/data/2.5/forecast?q={zip_code},US&units=imperial&APPID={key}")
         # store the returned data
         forcast = data.json()
-        # check if the retured data is for a valid city
-        get_cod(forcast)
+        
     except:
         print("Request failed")
-        print(forcast)
         exit()
+        
+    # check if the data is valid JSON
+    test_json_dumps(forcast)
+    
+    # check if the retured data is for a valid city
+    get_cod(forcast)
         
     # get present forcast
     day = 0
@@ -68,7 +75,11 @@ def main():
         print("---------")
         # once they aren't the same request data
         # from forcast with a new date
-        get_future_forcast(forcast, i)
+        try:
+            get_future_forcast(forcast, i)
+        except:
+            print("Error getting future forcast, invalid data returned.")
+            exit()
 
         # saves date of tomorrow's forcast
         next_date = check_date(forcast, i)
@@ -78,7 +89,11 @@ def main():
             i += 1
         print("---------")
         # gets forcast from two days out
-        get_future_forcast(forcast, i)
+        try:
+            get_future_forcast(forcast, i)
+        except:
+            print("Error getting future forcast, invalid data returned.")
+            exit()
         
         
 '''make sure entered num is five digits'''
@@ -157,11 +172,24 @@ def parse_date(forcast, day):
     cur_date = date[0:10]
     return cur_date
 
+
 '''gets the date from the forcast at index i'''
 def check_date(forcast, i):
     d = forcast['list'][i]['dt_txt']
     cd = d[0:10]
     return cd
+
+'''test that the api returns valid JSON through JSON dumps '''
+def test_json_dumps(string):
+    try:
+        # Attempt to convert the string to JSON
+        json.dumps(string)
+        # If conversion is successful, return True
+        return True
+    except Exception as e:
+        # If conversion fails, print the error and exit
+        print("JSON conversion error:", e)
+        exit()
 
 
 '''Sanitize the input to prevent SQL injection attacks'''
