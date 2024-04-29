@@ -1,41 +1,37 @@
 
-
 import json
-
+import requests
+import datetime
+import secrets1
+import Logger
 
 def main():
-    import requests
-    import datetime
-    import secrets1
-    import logging
-    
     
     # set up logging
-    logging.basicConfig(filename='weather.log', level=logging.INFO, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
-    
+    #Logger.basicConfig(filename='weather.log', level=Logger.INFO, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
     
     # get the api  (from openweathermap.org)
     try:
         key = secrets1.secrets()
-        logging.info("Key retrieved")
+        Logger.logger.info("Key retrieved")
     except KeyError as e:
-        logging.exception("Error getting key")
-        print("Error getting key")
+        Logger.logger.exception("Error retrieving key")
+        print("Error retrieving key")
         exit()
         
 
     # get user zip
     try:
         zip_code = int(input("Enter a ZipCode: "))
+
     except ValueError as e:
         print("Please enter a 5 digit zipcode")
-        logging.error("Invalid input")
+        Logger.logger.error("Invalid input, non-numeric value entered")
         exit()
     
     # check for valid length of input
-    is_five_digits(str(zip_code))
+    is_five_digits(zip_code)
     
-    bruh = 1
 
     try:
         # make the request
@@ -46,6 +42,7 @@ def main():
         
     except:
         print("Request failed")
+        Logger.logger.error("API Request failed")
         exit()
         
     # check if the data is valid JSON
@@ -59,7 +56,8 @@ def main():
     try:
         get_current_weather(forcast, day)
     except:
-        print("Error getting current forcast, invalid data returned.")
+        print("Error retrieving current forcast, invalid data returned.")
+        Logger.logger.error("Error retrieving current forcast, invalid data returned.")
         exit()
 
     # store the date of the current forcast
@@ -78,7 +76,7 @@ def main():
         try:
             get_future_forcast(forcast, i)
         except:
-            print("Error getting future forcast, invalid data returned.")
+            print("Error retrieving future forcast, invalid data returned.")
             exit()
 
         # saves date of tomorrow's forcast
@@ -92,15 +90,19 @@ def main():
         try:
             get_future_forcast(forcast, i)
         except:
-            print("Error getting future forcast, invalid data returned.")
+            print("Error retrieving future forcast, invalid data returned.")
             exit()
         
         
 '''make sure entered num is five digits'''
 def is_five_digits(zip_code):
-    if len(zip_code) != 5:
+    # can not use zip code length since cities
+    # that start with 0 will not be regognized as 5 digits
+    if zip_code < 0 or zip_code > 99999:
         print("Please enter a 5 digit zipcode")
+        Logger.logger.error("Invalid input, not 5 digits")
         exit()
+
 
 '''make sure the entered zip code returns data'''
 def get_cod(forcast):
@@ -108,7 +110,7 @@ def get_cod(forcast):
     sanitize(cod)
     if cod == '404' or cod == '':
         print("City not found! Please enter a valid zipcode!")
-        logging.error("Zip code does not contain city information")
+        Logger.logger.error("5 digit number entered, but not a valid zip code")
         exit()
 
 '''gets the current weather forcast. Location, date, temp, weather type, and wind speed'''
@@ -137,6 +139,7 @@ def get_current_weather(forcast, day):
     wind = str(wind)
     sanitize(wind)
     print("The wind is blowing at " + wind + " mph")
+    Logger.logger.info("Current weather forcast retrieved")
 
 '''gets the future forcast, i is the index of tomorrow's date'''
 def get_future_forcast(forcast, i):
@@ -164,20 +167,31 @@ def get_future_forcast(forcast, i):
     wind = str(wind)
     sanitize(wind)
     print("The wind is blowing at " + wind + " mph")
+    Logger.logger.info("Future forcast retrieved")
 
 '''gets the date from the day the forcast was requested'''
 def parse_date(forcast, day):
-    date = forcast['list'][day]['dt_txt']
-    # remove the time from the end of the date field
-    cur_date = date[0:10]
-    return cur_date
+    try:
+        date = forcast['list'][day]['dt_txt']
+        # remove the time from the end of the date field
+        cur_date = date[0:10]
+        return cur_date
+    except:
+        print("Error retrieving date")
+        Logger.logger.error("Error retrieving date")
+        exit()
 
 
 '''gets the date from the forcast at index i'''
 def check_date(forcast, i):
-    d = forcast['list'][i]['dt_txt']
-    cd = d[0:10]
-    return cd
+    try:
+        d = forcast['list'][i]['dt_txt']
+        cd = d[0:10]
+        return cd
+    except:
+        print("Error retrieving date")
+        Logger.logger.error("Error retrieving date")
+        exit()
 
 '''test that the api returns valid JSON through JSON dumps '''
 def test_json_dumps(string):
@@ -189,6 +203,7 @@ def test_json_dumps(string):
     except Exception as e:
         # If conversion fails, print the error and exit
         print("JSON conversion error:", e)
+        Logger.logger.error("API did not return valid JSON data")
         exit()
 
 
@@ -207,3 +222,4 @@ def sanitize(input):
 
 if __name__ == '__main__':
     main()
+
