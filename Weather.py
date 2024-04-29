@@ -74,6 +74,7 @@ def main():
             get_future_forcast(forcast, i)
         except:
             print("Error retrieving future forcast, invalid data returned.")
+            Logger.logger.error("Error retrieving future forcast, invalid data returned.")
             exit()
 
         # saves date of tomorrow's forcast
@@ -88,6 +89,7 @@ def main():
             get_future_forcast(forcast, i)
         except:
             print("Error retrieving future forcast, invalid data returned.")
+            Logger.logger.error("Error retrieving future forcast, invalid data returned.")
             exit()
         
         
