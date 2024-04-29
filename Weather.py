@@ -6,10 +6,7 @@ import secrets1
 import Logger
 
 def main():
-    
-    # set up logging
-    #Logger.basicConfig(filename='weather.log', level=Logger.INFO, filemode='w', format='%(asctime)s - %(levelname)s - %(message)s')
-    
+
     # get the api  (from openweathermap.org)
     try:
         key = secrets1.secrets()
